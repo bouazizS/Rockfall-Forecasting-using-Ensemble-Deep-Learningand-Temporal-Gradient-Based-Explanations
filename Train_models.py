@@ -33,7 +33,7 @@ df_sismo= pd.read_csv('.data/ev_sismo2.csv')
 df_RR1= pd.read_csv('.data/1.0_RR1.csv', delimiter='\t')
 
 # Obtain water charge Dataframe 
-df_precip = pd.read_csv('.data/data_meteo_Sabrine2.csv', delimiter=';')
+df_precip = pd.read_csv('.data/data_meteo.csv', delimiter=';')
 df_precip['AAAAMMJJHH'] = df_RR1['AAAAMMJJHH'].values
 df_precip['AAAAMMJJHH'] = pd.to_datetime(df_precip['AAAAMMJJHH'])
 lamb=0.2
