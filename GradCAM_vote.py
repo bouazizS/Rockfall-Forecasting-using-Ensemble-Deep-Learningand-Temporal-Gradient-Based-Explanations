@@ -10,7 +10,6 @@ from glob import glob
 import json
 import matplotlib.pyplot as plt
 from collections import defaultdict
-import pickle
 import os 
 import cv2
 
