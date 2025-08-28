@@ -128,7 +128,7 @@ for hp in [1, 3, 7]:
         remaining_years = np.setdiff1d(unique_years, [test_year])
 
         # Select the validation year from the remaining years
-        print('---------test_year', test_year)
+        print('test_year', test_year)
 
         # Create a folder test_year to save the 9 models 
         test_year_folder = os.path.join(path, f'test_year_{test_year[0]}')
