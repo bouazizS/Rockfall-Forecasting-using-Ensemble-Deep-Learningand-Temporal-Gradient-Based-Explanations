@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, TensorDataset
 from gradcam_Inception.InceptionTime_attention import InceptionTimeModel 
-from gradcam_Inception.utils import  process_rockfall_data_multi, charge, preprocess_segments, plot_PR_gkf_per_year_val
+from gradcam_Inception.utils import  process_rockfall_data_multi, charge, preprocess_segments, plot_PR_gkf_per_year_val, convert_ndarray
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.class_weight import compute_class_weight
@@ -25,15 +25,29 @@ import numpy as np
 import seaborn as sns
 
 
+class DualInputDataset:
+    def __init__(self, x1, x2, y):
+        self.x1 = x1  # 1st time series tensor [n_samples, 1, 336]
+        self.x2 = x2  # 2nd time series tensor [n_samples, 1, 336]
+        self.y = y    # Labels
+
+    def __len__(self):
+        return len(self.y)
+
+    def __getitem__(self, idx):
+        return (self.x1[idx], self.x2[idx]), self.y[idx] # Tuples
+
+
+
 # To precise InceptionTime model with attention gate or not
 use_attention=False
 
 # Load df of RR1 and  sismo events
-df_sismo= pd.read_csv('.data/events/ev_sismo2.csv')
-df_RR1= pd.read_csv('.data/events/1.0_RR1.csv', delimiter='\t')
+df_sismo= pd.read_csv('.data/ev_sismo2.csv')
+df_RR1= pd.read_csv('.data/1.0_RR1.csv', delimiter='\t')
 
-#charge/discharge H 
-df_precip = pd.read_csv('/mnt/SSD1/bouazizs/GradCam/Probabilities/data_meteo_Sabrine2.csv', delimiter=';')
+# Obtain water charge Dataframe 
+df_precip = pd.read_csv('.data/data_meteo_Sabrine2.csv', delimiter=';')
 df_precip['AAAAMMJJHH'] = df_RR1['AAAAMMJJHH'].values
 df_precip['AAAAMMJJHH'] = pd.to_datetime(df_precip['AAAAMMJJHH'])
 lamb=0.2
@@ -44,9 +58,12 @@ start_time = time.time()
 
 results_cross_validation = []
 for hp in [1, 3, 7]:
-    path= f'testing_models_gkf_multi_branch/HP_{hp}/'
-    path_curves = f'testing_models_gkf_multi_branch/HP_{hp}/curves/'
-    
+    path= f'testing_models/HP_{hp}/'
+    path_curves = f'testing_models/HP_{hp}/curves/'
+    # Create both folders if they don't exist
+    os.makedirs(path, exist_ok=True)
+    os.makedirs(path_curves, exist_ok=True)
+
     print(f"\nrunning model with hp = {hp}")
 
     df_1 = process_rockfall_data_multi(df_RR1, df_sismo, x_days=hp, col_name='RR1',  concat_with_R=True, jour_pluie=14)
@@ -58,14 +75,14 @@ for hp in [1, 3, 7]:
     df = pd.merge(df_2, df_1, on='sample_id')
     df = df.drop(columns=['sample_id'])
 
-    # Set index of df AAAAMMJJHH (to use it for year colmun!)
+    # Set index of df AAAAMMJJHH (to use it for year colmun)
     df.set_index('AAAAMMJJHH', inplace=True)
     # Generate a column of years as groups
-    df['year'] = pd.to_datetime(df.index).year  #year of rockfall!
-    df = df[(df['year'] != 2013) & (df['year'] != 2024)] # Remove 2013 year and 2024 
+    df['year'] = pd.to_datetime(df.index).year  #year of rockfall
+    df = df[(df['year'] != 2013) & (df['year'] != 2024)] # Remove both 2013, as it is an incomplete year, and 2024, which is reserved for blind testing
 
-    X_1 = df[[f"RR1_hour_{i}" for i in range(336)]].values  #----> colmuns of Rain
-    X_2 = df[[f"H_hour_{i}" for i in range(336)]].values  #----> colmuns of water charge
+    X_1 = df[[f"RR1_hour_{i}" for i in range(336)]].values  # Colmuns of Rain (windows of 14*24)
+    X_2 = df[[f"H_hour_{i}" for i in range(336)]].values    # Colmuns of water charge (windows of 14*24)
 
     x1_scaled, scaler1 = preprocess_segments(X_1) 
     x2_scaled, scaler2 = preprocess_segments(X_2)    # shape (n_samp, 336, 1) 
@@ -90,13 +107,12 @@ for hp in [1, 3, 7]:
     class_weight_tensor = torch.FloatTensor(class_weights).to(device)
 
 
-    #to save the performance
+    # For saving  performances
     fold_results = []
     all_test_metrics = {}
     all_val_metrics={}
     all_train_metrics={}
-
-    all_test_results = []  #pour stocker les resultats de toutes les tests pour ce hp
+    all_test_results = []  #
 
     # Groupkfold : 
     for fold, (train_val_idx, test_idx) in enumerate(gkf.split(x1_tensor, y_encoded, groups=groups)):
@@ -119,10 +135,7 @@ for hp in [1, 3, 7]:
         os.makedirs(test_year_folder, exist_ok=True)
 
         test_metrics=[] #pour stocker la dedans les metriques de chaque test year, pour chaque val
-        #initialize best model tracking for this test year
      
-        best_overall_val_loss = float('inf')
-
         for val_year in remaining_years :
             print('--------val_year', val_year)
             remaining_train_year= np.setdiff1d(remaining_years, [val_year])
@@ -130,12 +143,11 @@ for hp in [1, 3, 7]:
             train_idx = np.where(groups_train_val != val_year)[0]
             val_idx = np.where(groups_train_val == val_year)[0]
             
-            #Diviser dual inputs
             x1_train, x1_val = x1_train_val[train_idx], x1_train_val[val_idx]
             x2_train, x2_val = x2_train_val[train_idx], x2_train_val[val_idx]
             y_train, y_val = y_train_val[train_idx], y_train_val[val_idx]
 
-            #load data with dataloader
+            # Load data with dataloader
             bs=32
             train_dataset = DualInputDataset(x1_train, x2_train, y_train)
             val_dataset = DualInputDataset(x1_val, x2_val, y_val)
@@ -145,8 +157,7 @@ for hp in [1, 3, 7]:
             val_loader = DataLoader(val_dataset, batch_size=bs, shuffle=False)
             test_loader = DataLoader(test_dataset, batch_size=bs, shuffle=False)
         
-            #configuration model with dual input for this fold
-            
+            # Configuration model with dual input for this fold
             if use_attention :  # model with attention
                 model = InceptionTimeModel( in_channels_1=1, in_channels_2=1, num_classes=len(np.unique(y_encoded)), n_blocks=2, merge_mode='concat', use_attention=True)
             else :
@@ -178,7 +189,7 @@ for hp in [1, 3, 7]:
             val_recall_class_1 = []
             val_f1_class_1 = []
 
-            # Initilize each test metrics dict to save metrics for a test year and a specific val_year
+            # Initialize each test metrics dict to save metrics for a test year and a specific val_year
             test_metrics_per_model={}
 
             # Early stopping parameters
@@ -186,6 +197,7 @@ for hp in [1, 3, 7]:
             best_val_loss = float('inf')  
             counter = 0 
             epochs_no_improve=0
+
             #------------------------------------Training for each fold
             nb_epochs=200
             for epoch in range(nb_epochs):
@@ -330,7 +342,7 @@ for hp in [1, 3, 7]:
             total = 0
             all_test_targets = []
             all_test_predictions = []
-            all_test_probs = []  #store predicted probabilities
+            all_test_probs = []  # To store the predicted probabilities
 
             with torch.no_grad():
                 for (data1,data2), target in test_loader:
