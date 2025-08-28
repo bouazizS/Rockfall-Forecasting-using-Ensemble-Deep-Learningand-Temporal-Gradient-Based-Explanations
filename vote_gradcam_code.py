@@ -155,13 +155,26 @@ def plot_with_heatmap_new(sample_signal, heatmap, model, output_path, layer_name
 
 
 def plot_gradcam_heatmaps_averaged_per_sample(modality, avg_gradcam_dict, classee, path_save, pred):
-    all_heatmaps = []
-    avg_gradcam_dict=avg_gradcam_dict.cpu().numpy()
-    time = np.arange(-len(avg_gradcam_dict), 0)
-    plt.figure(figsize=(6, 2.5))
-    plt.plot(time, np.flip(avg_gradcam_dict), label="Mean", color="blue")
+    #avg_gradcam_dict=avg_gradcam_dict.cpu().numpy()
+    #time = np.arange(-len(avg_gradcam_dict), 0)
+
+    # Moyenne et médiane sur les modèles, pas par pas
+    mean_vector = np.mean(avg_gradcam_dict, axis=0)
+    median_vector = np.median(avg_gradcam_dict, axis=0)
+    perc25 = np.percentile(avg_gradcam_dict, 25, axis=0)
+    perc75 = np.percentile(avg_gradcam_dict, 75, axis=0)
+
+
+    time = np.arange(-len(mean_vector), 0)
+    plt.figure(figsize=(6, 3))
+    # plt.plot(time, np.flip(avg_gradcam_dict), label="Mean", color="blue")
+    plt.plot(time, np.flip(mean_vector), label="Mean", color="blue")
+    plt.plot(time, np.flip(median_vector), label="Median", color="red", linestyle="--")
+    plt.fill_between(time, np.flip(perc25), np.flip(perc75), color="gray", alpha=0.3, label="[25\%, 75\%]")
+
     plt.xlabel("Time (hours)")
     plt.ylabel("Grad-CAM Importance ")
+    plt.legend(loc='upper center', bbox_to_anchor=(0.5, 1.25), ncol=3)  # Adjust 'ncol' for multiple columns
     plt.tight_layout()
     filename = f"{modality}_gradcams_stats_{pred}sur{classee}_averaged_per_sample.png"
     filepath = os.path.join(path_save, filename)
@@ -196,6 +209,7 @@ df = pd.merge(df_2, df_1, on='sample_id')
 df = df.drop(columns=['sample_id'])
 df.set_index('AAAAMMJJHH', inplace=True)
 
+
 X_rain = df[[f"RR1_hour_{i}" for i in range(336)]].values  #----> colonnes de précipitations
 X_charge = df[[f"H_hour_{i}" for i in range(336)]].values 
 
@@ -216,7 +230,7 @@ X_test_tensor_orig_charge = torch.FloatTensor(X_charge).view(-1, 1, X_charge.sha
 X_test_tensor_orig_rain = torch.FloatTensor(X_rain).view(-1, 1, X_rain.shape[1]).to(device)
 
 
-for classe in [0]:
+for classe in [1]:
     for pred in [1]:
         if classe == pred :
             check = True 
@@ -288,40 +302,29 @@ for classe in [0]:
                             samples_dict[idx][name].append(original_samples[name])
 
 
-        avg_gradcam_dict = {}
+
+        # avg_gradcam_dict = {}
+        # sample_dict_maj={}
         # for idx in gradcam_dict:
         #     avg_gradcam_dict[idx] = {}
+        #     sample_dict_maj[idx]= {}
         #     for modality in gradcam_dict[idx]:
         #         heatmaps = gradcam_dict[idx][modality]  
-        #         heatmaps_tensor = [torch.tensor(h) for h in heatmaps]
-        #         #stack et moyenne
-        #         stacked = torch.stack(heatmaps_tensor)
-        #         avg = stacked.mean(dim=0)     
-        #         avg_gradcam_dict[idx][modality] = avg
-
-        sample_dict_maj={}
-
-        for idx in gradcam_dict:
-            avg_gradcam_dict[idx] = {}
-            sample_dict_maj[idx]= {}
-            for modality in gradcam_dict[idx]:
-                heatmaps = gradcam_dict[idx][modality]  
-                if len(heatmaps) >= 90 / 2:   # > moitié des modèles
-                    heatmaps_tensor = [torch.tensor(h) for h in heatmaps]
-                    stacked = torch.stack(heatmaps_tensor)
-                    avg = stacked.mean(dim=0)     
-                    avg_gradcam_dict[idx][modality] = avg
-                    #save only samples that verif the majority vote
-                    sample_dict_maj[idx][modality] = samples_dict[idx][modality]
+        #         if len(heatmaps) > 90 / 2:   # > moitié des modèles
+        #             heatmaps_tensor = [torch.tensor(h) for h in heatmaps]
+        #             stacked = torch.stack(heatmaps_tensor)
+        #             avg = stacked.mean(dim=0)     
+        #             avg_gradcam_dict[idx][modality] = avg
+        #             #save only samples that verif the majority vote
+        #             sample_dict_maj[idx][modality] = samples_dict[idx][modality]
 
 
         #print(samples_dict)
         #print(avg_gradcam_dict)
-
-        plot_gradcam_heatmaps_averaged_per_idx("Rain", avg_gradcam_dict, classe, folder, pred )
-        plot_gradcam_heatmaps_averaged_per_idx("Charge", avg_gradcam_dict, classe, folder, pred )
-        plot_mean_sample_per_modality(sample_dict_maj, "Rain", folder, classe, pred)
-        plot_mean_sample_per_modality(sample_dict_maj, "Charge", folder, classe, pred)
+        # plot_gradcam_heatmaps_averaged_per_idx("Rain", avg_gradcam_dict, classe, folder, pred )
+        # plot_gradcam_heatmaps_averaged_per_idx("Charge", avg_gradcam_dict, classe, folder, pred )
+        # plot_mean_sample_per_modality(sample_dict_maj, "Rain", folder, classe, pred)
+        # plot_mean_sample_per_modality(sample_dict_maj, "Charge", folder, classe, pred)
 
 
 
@@ -329,14 +332,15 @@ for classe in [0]:
 
 
 #For plotting one example of gradcam on one model overlayed on the signal
-#model_ind=4
-# sample_idx=328
-# name="Rain"
-# # sample_precip_flipped = np.flip(samples_dict[sample_idx][name][0].cpu().numpy(), axis=-1)
-# # heatmap_flipped = np.flip(gradcam_dict[sample_idx][name][model_ind], axis=-1)
-# # plot_with_heatmap_new(sample_precip_flipped, heatmap_flipped, model, folder, "branch_1", hp ,"Class 1",facteur="Rainfall [mm/h]", plot_type='overlay')
-
+model_ind=4
+sample_idx=328
+name="Rain"
+# sample_precip_flipped = np.flip(samples_dict[sample_idx][name][0].cpu().numpy(), axis=-1)
+# heatmap_flipped = np.flip(gradcam_dict[sample_idx][name][model_ind], axis=-1)
+# plot_with_heatmap_new(sample_precip_flipped, heatmap_flipped, model, folder, "branch_1", hp ,"Class 1",facteur="Rainfall [mm/h]", plot_type='overlay')
 # plot_gradcam_heatmaps_averaged_per_sample(name, avg_gradcam_dict[sample_idx][name], classe, folder, pred )
+plot_gradcam_heatmaps_averaged_per_sample(name, gradcam_dict[sample_idx][name], classe, folder, pred )
+
 
 
 
