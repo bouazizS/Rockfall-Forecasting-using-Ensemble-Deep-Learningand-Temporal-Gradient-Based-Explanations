@@ -5,7 +5,7 @@ This repository contains the code for Rockfall-Forecasting-using-Ensemble-Deep-L
 
 ## Data
 
-- **Météo France data**: Available on Zenodo https://doi.org/10.5281/zenodo.16978847 :
+- **Météo France data**: Available on Zenodo [https://doi.org/10.5281/zenodo.16978847](https://doi.org/10.5281/zenodo.16985288) :
   
   The uploaded CSV files contain meteorological data collected from multiple sensors:
     - 1.0_RR1.csv and 1.0_RR1_2024.csv: These files include precipitation (RR1) data recorded at the LVD station.
