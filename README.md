@@ -9,4 +9,4 @@ This repository contains the code for Rockfall-Forecasting-using-Ensemble-Deep-L
 
 - **Rockfall catalogue**: Real data is restricted. To request access, contact Amitrano David <david.amitrano@univ-grenoble-alpes.fr> and Agnès Helmstetter <agnes.helmstetter@univ-grenoble-alpes.fr>.
 
-- **Fake catalogue**: A mock dataset is included in `data/fake_catalogue/` for testing the code.  
+- **Fake catalogue**: A mock dataset will be included in `data/fake_catalogue/` for testing the code.  
