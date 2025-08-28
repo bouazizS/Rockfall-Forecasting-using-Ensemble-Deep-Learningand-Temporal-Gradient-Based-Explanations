@@ -6,16 +6,15 @@ import json
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader, TensorDataset
+from torch.utils.data import DataLoader 
 from gradcam_Inception.InceptionTime_attention import InceptionTimeModel 
-from gradcam_Inception.utils import  process_rockfall_data_multi, charge, preprocess_segments, plot_PR_gkf_per_year_val, convert_ndarray
+from gradcam_Inception.utils import  DualInputDataset, process_rockfall_data_multi, charge, preprocess_segments, plot_PR_gkf_per_year_val, convert_ndarray
 from sklearn.model_selection import StratifiedKFold
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils.class_weight import compute_class_weight
 from sklearn.metrics import confusion_matrix
 import matplotlib.pyplot as plt
 import torch.utils.data as data
-import random 
 from sklearn.model_selection import GroupKFold
 from sklearn.metrics import precision_recall_curve, auc
 from sklearn.metrics import f1_score, recall_score, precision_score , balanced_accuracy_score
@@ -23,19 +22,6 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import json
 import numpy as np
 import seaborn as sns
-
-
-class DualInputDataset:
-    def __init__(self, x1, x2, y):
-        self.x1 = x1  # 1st time series tensor [n_samples, 1, 336]
-        self.x2 = x2  # 2nd time series tensor [n_samples, 1, 336]
-        self.y = y    # Labels
-
-    def __len__(self):
-        return len(self.y)
-
-    def __getitem__(self, idx):
-        return (self.x1[idx], self.x2[idx]), self.y[idx] # Tuples
 
 
 
@@ -134,7 +120,7 @@ for hp in [1, 3, 7]:
         test_year_folder = os.path.join(path, f'test_year_{test_year[0]}')
         os.makedirs(test_year_folder, exist_ok=True)
 
-        test_metrics=[] #pour stocker la dedans les metriques de chaque test year, pour chaque val
+        test_metrics=[] 
      
         for val_year in remaining_years :
             print('--------val_year', val_year)

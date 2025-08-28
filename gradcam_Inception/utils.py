@@ -35,6 +35,28 @@ def preprocess_segments(segments):
     return segments_scaled[..., np.newaxis], scaler  # Add a dimension for Conv1D
 
 
+class DualInputDataset:
+    def __init__(self, x1, x2, y):
+        self.x1 = x1  # 1st time series tensor [n_samples, 1, 336]
+        self.x2 = x2  # 2nd time series tensor [n_samples, 1, 336]
+        self.y = y    # Labels
+
+    def __len__(self):
+        return len(self.y)
+
+    def __getitem__(self, idx):
+        return (self.x1[idx], self.x2[idx]), self.y[idx] # Tuples
+
+
+def charge(dfpluie, lamb):
+    pluv = dfpluie['pluvio'].values  
+    H = np.zeros_like(pluv) 
+    Dt = 1 / 24  
+    for p in range(1, len(pluv)):
+        H[p] = H[p-1] * np.exp(-Dt / lamb) + pluv[p]
+    return H
+
+
 def plot_training_curves(train_losses, val_losses, train_accuracies, val_accuracies, output_path, hp):
     epochs_range = range(1, len(train_losses) + 1)
 
@@ -68,13 +90,6 @@ def plot_training_curves(train_losses, val_losses, train_accuracies, val_accurac
 
 
 
-def charge(dfpluie, lamb):
-    pluv = dfpluie['pluvio'].values  
-    H = np.zeros_like(pluv) 
-    Dt = 1 / 24  
-    for p in range(1, len(pluv)):
-        H[p] = H[p-1] * np.exp(-Dt / lamb) + pluv[p]
-    return H
 
 
 def process_rockfall_data_multi(df_RR, df_sismo, x_days, col_name='RR1',concat_with_R=True, jour_pluie=14):
@@ -229,3 +244,5 @@ def plot_roc(fpr, tpr, roc_auc, path , hp ):
     plt.grid()
     plt.savefig(f"{path}ROC_Curve_hp={hp}.png")
     plt.show()
+
+
