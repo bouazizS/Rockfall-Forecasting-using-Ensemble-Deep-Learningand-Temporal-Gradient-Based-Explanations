@@ -1,11 +1,7 @@
 import torch 
 import torch.nn as nn
 from torchsummary import summary
-import torchvision
-from torchview import draw_graph
-from torchviz import make_dot
 
-''' multi inception block then fusion'''
 
 def correct_sizes(sizes):
 	corrected_sizes = [s if s % 2 != 0 else s - 1 for s in sizes]
@@ -292,16 +288,3 @@ class InceptionTimeModel(nn.Module):
         x = self.fc(x)
         return x
 
-
-#visualisation graphisue du modele
-# model = InceptionTimeModel(
-#     in_channels_1=1,  #time series (1 channel)
-#     in_channels_2=1,  #second time series (1 channel)
-#     num_classes=2,  
-#     merge_mode='concat' , 
-# 	use_attention=True
-# )
-
-# model_graph = draw_graph( model, input_size=[(1, 1, 336), (1, 1, 336)],  expand_nested=True)
-
-# model_graph.visual_graph.render(filename="inception_time_2_branches_attention", format="png")

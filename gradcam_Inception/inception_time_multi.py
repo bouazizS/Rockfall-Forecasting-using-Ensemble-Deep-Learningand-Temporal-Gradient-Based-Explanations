@@ -1,11 +1,6 @@
 import torch 
 import torch.nn as nn
 from torchsummary import summary
-# import torchvision
-# from torchview import draw_graph
-# from torchviz import make_dot
-
-''' multi inception block then fusion'''
 
 def correct_sizes(sizes):
 	corrected_sizes = [s if s % 2 != 0 else s - 1 for s in sizes]
@@ -203,15 +198,13 @@ class InceptionTimeModel(nn.Module):
         #Merge features
         if self.merge_mode == 'concat':
             merged_features = 4 * n_filters * 2  #2 for number of modalities
-        # elif self.merge_mode == 'add':
-        #     merged_features = 4 * n_filters  #reste same shape if adding
+
         else:
             raise ValueError("merge_mode must be 'concat' or 'add'")
 		
         # Global average pooling(shared)
         self.global_avg_pool = nn.AdaptiveAvgPool1d(1)        
         #add a dense layer after merging
-        #self.merge_fc = nn.Linear(merged_features, 4 * n_filters)
         self.merge_fc = nn.Sequential(
 			nn.Linear(merged_features, 4 * n_filters),
 			nn.ReLU() )
@@ -241,24 +234,6 @@ class InceptionTimeModel(nn.Module):
         # Final classification
         x = self.fc(x)
         return x
-
-
-#visualisation graphisue du modele
-# model = InceptionTimeModel(
-#     in_channels_1=1,  #time series (1 channel)
-#     in_channels_2=1,  #second time series (1 channel)
-#     num_classes=2,  
-#     merge_mode='concat'  
-# )
-
-# model_graph = draw_graph( model, input_size=[(1, 1, 336), (1, 1, 336)],  expand_nested=True)
-
-# model_graph.visual_graph.render(filename="inception_time_Multi_branch", format="png")
-
-# Forward pass
-# rainfall_series = torch.randn(32, 1, 336)  # [batch, channels, timesteps]
-# temperature_series = torch.randn(32, 1, 336)
-# output = model(rainfall_series, temperature_series)
 
 
 
