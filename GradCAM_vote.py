@@ -15,13 +15,15 @@ import cv2
 
 
 
-plt.rcParams.update({'axes.labelsize': 13,    # Taille du texte des labels des axes
-                     'axes.titlesize': 12,   # Taille du texte du titre des axes
-                     'xtick.labelsize': 14,  # Taille du texte des labels des ticks X
-                     'ytick.labelsize': 14,  # Taille du texte des labels des ticks Y
-                     'font.size': 13,        # Taille générale du texte
-                     'legend.fontsize': 12})
-
+# Configure global matplotlib style settings 
+plt.rcParams.update({
+    'axes.labelsize': 13,    # Font size for axis labels
+    'axes.titlesize': 12,    # Font size for axis titles
+    'xtick.labelsize': 14,   # Font size for X-axis tick labels
+    'ytick.labelsize': 14,   # Font size for Y-axis tick labels
+    'font.size': 13,         # General font size
+    'legend.fontsize': 12    # Font size for legend text
+})
 
 modalities = ["Rain", "Charge"]
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

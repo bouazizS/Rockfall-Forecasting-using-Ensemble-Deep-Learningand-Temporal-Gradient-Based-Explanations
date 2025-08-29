@@ -17,8 +17,7 @@ plt.rcParams.update(
         "pgf.preamble": "\n".join(
             [
                 r"\usepackage[utf8x]{inputenc}",
-                r"\usepackage[T1]{fontenc}",
-                #r"\usepackage{cmbright}",
+                r"\usepackage[T1]{fontenc}"
             ]
         ),
     }
@@ -48,6 +47,7 @@ class DualInputDataset:
         return (self.x1[idx], self.x2[idx]), self.y[idx] # Tuples
 
 
+# Fonction for computing water charge from precipiation intensity
 def charge(dfpluie, lamb):
     pluv = dfpluie['pluvio'].values  
     H = np.zeros_like(pluv) 

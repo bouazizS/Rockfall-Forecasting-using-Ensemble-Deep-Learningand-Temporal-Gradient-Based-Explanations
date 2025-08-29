@@ -16,8 +16,6 @@ from gradcam_Inception.InceptionTime_attention import InceptionTimeModel
 # Apply HARD voting 
 vote = 'HARD' 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 # Load rain and rockfall data of the blind test year 2024 
 df_sismo= pd.read_csv('.data/ev_sismo2_2024.csv', delimiter=',')
 df_RR1= pd.read_csv('.data/1.0_RR1_2024.csv', delimiter=',')
@@ -28,6 +26,9 @@ df_precip['AAAAMMJJHH'] = df_RR1['AAAAMMJJHH'].values
 df_precip['AAAAMMJJHH'] = pd.to_datetime(df_precip['AAAAMMJJHH'])
 lamb=0.2
 df_precip['H'] = charge(df_precip,lamb) 
+
+# Select computation device: use GPU ("cuda") if available
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 for hp in [1,3,7] : 
 
@@ -42,8 +43,8 @@ for hp in [1,3,7] :
 
     df.set_index('AAAAMMJJHH', inplace=True)
 
-    X_rain = df[[f"RR1_hour_{i}" for i in range(336)]].values  
-    X_charge = df[[f"H_hour_{i}" for i in range(336)]].values 
+    X_rain = df[[f"RR1_hour_{i}" for i in range(336)]].values  # Colmuns of Rain (windows of 14*24)
+    X_charge = df[[f"H_hour_{i}" for i in range(336)]].values  # Colmuns of water charge (windows of 14*24)
 
     x_rain_scaled, _ = preprocess_segments(X_rain)
     x_charge_scaled, _ = preprocess_segments(X_charge)
