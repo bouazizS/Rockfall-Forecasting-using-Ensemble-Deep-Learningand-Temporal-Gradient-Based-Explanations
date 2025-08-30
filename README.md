@@ -9,4 +9,22 @@ This repository contains the code for Rockfall-Forecasting-using-Ensemble-Deep-L
 
 - **Rockfall catalogue**: Real data is restricted. To request access, contact Amitrano David <david.amitrano@univ-grenoble-alpes.fr> and Agnès Helmstetter <agnes.helmstetter@univ-grenoble-alpes.fr>.
 
-- **Fake catalogue**: A mock dataset will be included in `data/fake_catalogue/` for testing the code.  
+- **Fake catalogue**: A mock dataset will be included in `fake_catalogue/` for testing purposes.
+
+
+## Script Description                                                                      
+
+| `train_models.py` | Trains individual deep learning models on the processed dataset  using cross-validation    |
+| `hard_voting.py`  | Combines predictions from multiple models using hard voting to produce an ensemble forecast. |
+| `gradcam_vote.py` | Applies Grad-CAM explanations on the ensemble predictions to identify temporal features influencing rockfall forecasts. |
+
+
+## Usage
+
+1. Modify the paths in each script to point to your data paths. 
+
+2. Run the scripts in the following order:  
+    ```bash
+    python3 train_models.py
+    python3 hard_voting.py
+    python3 gradcam_vote.py
