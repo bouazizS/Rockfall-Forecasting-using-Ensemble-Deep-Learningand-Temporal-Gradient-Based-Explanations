@@ -18,7 +18,7 @@ This repository contains the code for Rockfall-Forecasting-using-Ensemble-Deep-L
 
 - `Hard_voting.py`: Combines predictions from multiple models using hard voting to produce an ensemble forecast. 
 
-- `GRADCAM_vote.py`: Applies Grad-CAM explanations on the ensemble predictions to identify temporal features influencing rockfall forecasts. 
+- `GradCAM_vote.py`: Applies Grad-CAM explanations on the ensemble predictions to identify temporal features influencing rockfall forecasts. 
 
 
 ## Usage
@@ -29,4 +29,4 @@ This repository contains the code for Rockfall-Forecasting-using-Ensemble-Deep-L
     ```bash
     python3 Train_models.py
     python3 Hard_voting.py
-    python3 GRADCAM_vote.py
+    python3 GradCAM_vote.py
