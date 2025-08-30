@@ -14,17 +14,19 @@ This repository contains the code for Rockfall-Forecasting-using-Ensemble-Deep-L
 
 ## Script Description                                                                      
 
-| `train_models.py` | Trains individual deep learning models on the processed dataset  using cross-validation    |
-| `hard_voting.py`  | Combines predictions from multiple models using hard voting to produce an ensemble forecast. |
-| `gradcam_vote.py` | Applies Grad-CAM explanations on the ensemble predictions to identify temporal features influencing rockfall forecasts. |
+- `Train_models.py`: Trains individual deep learning models on the processed dataset  using cross-validation.
+
+- `Hard_voting.py`: Combines predictions from multiple models using hard voting to produce an ensemble forecast. 
+
+- `GRADCAM_vote.py`: Applies Grad-CAM explanations on the ensemble predictions to identify temporal features influencing rockfall forecasts. 
 
 
 ## Usage
 
-1. Modify the paths in each script to point to your data paths. 
+1. Modify the meteorological and sismic data paths in each script to point to your data paths. 
 
 2. Run the scripts in the following order:  
     ```bash
-    python3 train_models.py
-    python3 hard_voting.py
-    python3 gradcam_vote.py
+    python3 Train_models.py
+    python3 Hard_voting.py
+    python3 GRADCAM_vote.py
