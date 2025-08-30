@@ -68,8 +68,8 @@ for hp in [1,3,7]:
     X_test_tensor_orig_rain = torch.FloatTensor(X_rain).view(-1, 1, X_rain.shape[1]).to(device)
 
 
-    for classe in [1]:
-        for pred in [1]:
+    for classe in [1,0]:
+        for pred in [1,0]:
             if classe == pred :
                 check = True 
             else :
