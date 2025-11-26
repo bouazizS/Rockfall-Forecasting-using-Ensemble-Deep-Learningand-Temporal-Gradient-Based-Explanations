@@ -29,11 +29,11 @@ lamb=0.2
 df_precip['H'] = charge(df_precip,lamb) 
 
 
-with open("scaler_rr1.pkl", "rb") as f:
-    scaler_rr1 = pickle.load(f)
+with open("scaler_rain.pkl", "rb") as f:
+    scaler_rain = pickle.load(f)
 
-with open("scaler_h.pkl", "rb") as f:
-    scaler_h = pickle.load(f)
+with open("scaler_charge.pkl", "rb") as f:
+    scaler_charge = pickle.load(f)
 
 
 # Select computation device: use GPU ("cuda") if available
@@ -55,8 +55,8 @@ for hp in [1,3] :
     X_rain = df[[f"RR1_hour_{i}" for i in range(336)]].values  # Colmuns of Rain (windows of 14*24)
     X_charge = df[[f"H_hour_{i}" for i in range(336)]].values  # Colmuns of water charge (windows of 14*24)
 
-    x_rain_scaled, _ = preprocess_segments_test(X_rain, scaler_rain)
-    x_charge_scaled, _ = preprocess_segments_test(X_charge, scaler_charge)
+    x_rain_scaled = preprocess_segments_test(X_rain, scaler_rain)
+    x_charge_scaled = preprocess_segments_test(X_charge, scaler_charge)
 
     y = df['rockfall_target'].values
     encoder = LabelEncoder()
