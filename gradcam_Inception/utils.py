@@ -33,6 +33,13 @@ def preprocess_segments(segments):
     segments_scaled = scaler.fit_transform(segments.reshape(-1, segments.shape[-1])).reshape(segments.shape)
     return segments_scaled[..., np.newaxis], scaler  # Add a dimension for Conv1D
 
+def preprocess_segments_test(segments, scaler):
+    """
+    Apply a scaler (already fitted on training data) to a segment matrix.
+    """
+    segments_scaled = scaler.transform(segments.reshape(-1, segments.shape[-1])).reshape(segments.shape)
+    return segments_scaled[..., np.newaxis]  
+
 
 class DualInputDataset:
     def __init__(self, x1, x2, y):

@@ -1,4 +1,4 @@
-from gradcam_Inception.utils import  process_rockfall_data_multi, charge, preprocess_segments
+from gradcam_Inception.utils import  process_rockfall_data_multi, charge,  preprocess_segments_test
 import pandas as pd 
 import numpy as np 
 import time
@@ -12,6 +12,7 @@ from sklearn.metrics import confusion_matrix
 import os
 from sklearn.utils.class_weight import compute_sample_weight
 from gradcam_Inception.InceptionTime_attention import InceptionTimeModel 
+import pickle
 
 # Apply HARD voting 
 vote = 'HARD' 
@@ -27,10 +28,18 @@ df_precip['AAAAMMJJHH'] = pd.to_datetime(df_precip['AAAAMMJJHH'])
 lamb=0.2
 df_precip['H'] = charge(df_precip,lamb) 
 
+
+with open("scaler_rr1.pkl", "rb") as f:
+    scaler_rr1 = pickle.load(f)
+
+with open("scaler_h.pkl", "rb") as f:
+    scaler_h = pickle.load(f)
+
+
 # Select computation device: use GPU ("cuda") if available
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-for hp in [1,3,7] : 
+for hp in [1,3] : 
 
     df_1 = process_rockfall_data_multi(df_RR1, df_sismo, x_days=hp, col_name='RR1',  concat_with_R=True, jour_pluie=14)
     df_1['sample_id'] = df_1.index
@@ -46,8 +55,8 @@ for hp in [1,3,7] :
     X_rain = df[[f"RR1_hour_{i}" for i in range(336)]].values  # Colmuns of Rain (windows of 14*24)
     X_charge = df[[f"H_hour_{i}" for i in range(336)]].values  # Colmuns of water charge (windows of 14*24)
 
-    x_rain_scaled, _ = preprocess_segments(X_rain)
-    x_charge_scaled, _ = preprocess_segments(X_charge)
+    x_rain_scaled, _ = preprocess_segments_test(X_rain, scaler_rain)
+    x_charge_scaled, _ = preprocess_segments_test(X_charge, scaler_charge)
 
     y = df['rockfall_target'].values
     encoder = LabelEncoder()

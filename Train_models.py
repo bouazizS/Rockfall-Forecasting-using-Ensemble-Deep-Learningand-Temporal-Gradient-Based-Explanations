@@ -22,7 +22,7 @@ from torch.optim.lr_scheduler import ReduceLROnPlateau
 import json
 import numpy as np
 import seaborn as sns
-
+import pickle
 
 
 # To precise InceptionTime model with attention gate or not
@@ -43,7 +43,7 @@ df_precip['H'] = charge(df_precip,lamb)
 start_time = time.time()
 
 results_cross_validation = []
-for hp in [1, 3, 7]:
+for hp in [1, 3]:
     path= f'testing_models/HP_{hp}/'
     path_curves = f'testing_models/HP_{hp}/curves/'
     # Create both folders if they don't exist
@@ -73,6 +73,13 @@ for hp in [1, 3, 7]:
     x1_scaled, scaler1 = preprocess_segments(X_1) 
     x2_scaled, scaler2 = preprocess_segments(X_2)    # shape (n_samp, 336, 1) 
 
+    # Save scalers
+    with open("scaler_rr1.pkl", "wb") as f:
+        pickle.dump(scaler1, f)
+
+    with open("scaler_h.pkl", "wb") as f:
+        pickle.dump(scaler2, f)
+
     y = df['rockfall_target'].values
     encoder = LabelEncoder()
     y_encoded = encoder.fit_transform(y)
@@ -97,9 +104,8 @@ for hp in [1, 3, 7]:
     # For saving  performances
     fold_results = []
     all_test_metrics = {}
-    all_val_metrics={}
     all_train_metrics={}
-    all_test_results = []  #
+    all_test_results = []  
 
     # Groupkfold : 
     for fold, (train_val_idx, test_idx) in enumerate(gkf.split(x1_tensor, y_encoded, groups=groups)):
@@ -185,7 +191,7 @@ for hp in [1, 3, 7]:
             counter = 0 
             epochs_no_improve=0
 
-            #------------------------------------Training for each fold
+            #-------------------Training for each fold
             nb_epochs=200
             for epoch in range(nb_epochs):
                 model.train()
@@ -403,8 +409,6 @@ for hp in [1, 3, 7]:
             with open(metrics_test_filename, 'w') as f:
                 json.dump(test_metrics_per_model, f, indent=4)
 
-
-
         # Areaged metrics across all 9 models for each test year
         avg_metrics = {
             'test_year': test_year,
@@ -429,6 +433,7 @@ for hp in [1, 3, 7]:
         json.dump(all_test_results, f, indent=4)
 
     print(f"All test metrics saved at {metrics_filename}")
-    end_time = time.time()
-    print("execution time: ", end_time - start_time )
+
+end_time = time.time()
+print("execution time: ", end_time - start_time )
 
