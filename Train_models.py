@@ -74,10 +74,10 @@ for hp in [1, 3]:
     x2_scaled, scaler2 = preprocess_segments(X_2)    # shape (n_samp, 336, 1) 
 
     # Save scalers
-    with open("scaler_rr1.pkl", "wb") as f:
+    with open("scaler_rain.pkl", "wb") as f:
         pickle.dump(scaler1, f)
 
-    with open("scaler_h.pkl", "wb") as f:
+    with open("scaler_charge.pkl", "wb") as f:
         pickle.dump(scaler2, f)
 
     y = df['rockfall_target'].values
